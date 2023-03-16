@@ -1,24 +1,36 @@
 import React, { useState } from 'react'
 import Button from '../components/ui/Button'
 import { uploadImage } from '../api/uploader'
-import { addNewProduct } from '../api/firebase'
+import useProducts from '../hooks/useProducts'
 export default function NewProduct() {
   const [product, setProduct] = useState({})
   const [file, setFile] = useState()
   const [isUploading, setIsUploading] = useState(false)
   const [success, setSuccess] = useState()
+  const addProduct = useProducts()
+  // const addProduct = useMutation(
+  //   ({ product, url }) => addNewProduct(product, url), // 어떤 함수로 변경?
+  //   {
+  //     onSuccess: () => queryClient.invalidateQueries(['product']),
+  //   }
+  // )
 
   const handleSubmit = (e) => {
     e.preventDefault()
     setIsUploading(true)
     uploadImage(file)
       .then((url) => {
-        addNewProduct(product, url).then(() => {
-          setSuccess('성공적으로 제품이 추가되었습니다')
-          setTimeout(() => {
-            setSuccess(null)
-          }, 3000)
-        })
+        addProduct.mutate(
+          { product, url },
+          {
+            onSuccess: () => {
+              setSuccess('성공적으로 제품이 추가되었습니다')
+              setTimeout(() => {
+                setSuccess(null)
+              }, 3000)
+            },
+          }
+        )
       })
       .finally(() => setIsUploading(false))
   }
